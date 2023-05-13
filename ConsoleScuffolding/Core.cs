@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace ConsoleScuffolding;
@@ -18,17 +19,19 @@ namespace ConsoleScuffolding;
 public static class Core {
   #region Private Data
 
-  private static Lazy<IHost> LazyHost = new Lazy<IHost>(() => {
+  private static readonly Lazy<IHost> LazyHost = new (() => {
     var builder = Host
       .CreateDefaultBuilder(Environment.GetCommandLineArgs())
       .ConfigureHostConfiguration(config => {
-         config.SetBasePath(Directory.GetCurrentDirectory());
-         config.AddJsonFile($"{Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly()!.Location)}.json", optional: true);
-         config.AddCommandLine(Environment.GetCommandLineArgs());
+        config.SetBasePath(Directory.GetCurrentDirectory());
+        config.AddJsonFile($"{Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly()!.Location)}.json", optional: true);
+        config.AddCommandLine(Environment.GetCommandLineArgs());
 
-         var root = config.Build();
+        StartUp.Configure(config);
 
-         root.Bind(new Settings());
+        var root = config.Build();
+
+        root.Bind(new Settings());
       })
       .ConfigureServices((context, services) => {
          var root = context.Configuration;
@@ -43,7 +46,7 @@ public static class Core {
     return builder.Build();
   });
 
-  private static Lazy<Settings> LazySettings = new Lazy<Settings>(() => {
+  private static readonly Lazy<Settings> LazySettings = new (() => {
     var options = ApplicationHost
       .Services
       .GetService<IOptions<Settings>>();
@@ -72,7 +75,7 @@ public static class Core {
   /// </summary>
   public static ILogger<T> Logger<T>() => ApplicationHost
     .Services
-    .GetService<ILogger<T>>();
+    .GetService<ILogger<T>>() ?? NullLogger<T>.Instance;
 
   #endregion Public
 }
