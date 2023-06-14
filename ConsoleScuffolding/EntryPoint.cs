@@ -7,6 +7,9 @@ internal static class EntryPoint {
 
   // Entry Point
   private static async Task Main() {
+    if (ConsoleHelp.Help())
+      return;
+
     await StartUp.Run();
   }
 }

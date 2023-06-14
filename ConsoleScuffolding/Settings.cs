@@ -18,5 +18,8 @@ public sealed class Settings {
   public Settings() {}
 
   #endregion Create
+
+  #region Public
+  #endregion Public
 }
 
